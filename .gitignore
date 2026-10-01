@@ -1,0 +1,38 @@
+# Local environment values
+.env
+.env.*
+!.env.example
+*.local
+
+# JavaScript / Next.js
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Java / Gradle / Maven
+target/
+build/
+.gradle/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local IDE and operating-system files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+~$*.docx
+
+# Logs and generated artifacts
+*.log
+*.tmp
+
