@@ -18,7 +18,13 @@ The ERP backend starts as one Spring Boot deployable organized into domain-owned
 
 ### PostgreSQL as the transactional source of truth
 
-PostgreSQL owns tenant-scoped ERP state, migrations, transactional workflows, stock/accounting ledgers, AI proposals/audit data, and initial vector data. Foreign keys, constraints, indexes, decimal types, transactions, optimistic locking, and migration review protect integrity. Hibernate does not create or destructively update production schemas.
+PostgreSQL owns tenant-scoped ERP state, migrations, transactional workflows, stock/accounting ledgers, AI proposals/audit data, and initial vector data. Supabase-hosted PostgreSQL is the selected development database; the application connects with standard PostgreSQL/JDBC and Flyway rather than depending on Supabase-only data APIs. Foreign keys, constraints, indexes, decimal types, transactions, optimistic locking, and migration review protect integrity. Hibernate does not create or destructively update production schemas.
+
+### Supabase-hosted PostgreSQL for development
+
+Use a dedicated Supabase development project to avoid storing a local database container. Store its connection values only in `.env` and connect from the backend; the browser never receives the database password or an admin/service-role key. Use a direct database endpoint for a persistent backend and migrations when IPv6 is available, or Supabase's shared session pooler for a long-lived connection from an IPv4-only network. Do not use transaction-pooler mode for the Spring/Flyway connection because it does not preserve all session features and has prepared-statement limitations. Keep Flyway migration files in source control as the schema authority.
+
+Supabase's current hosted default is PostgreSQL 17, with the 17.11 minor release rolling out in September 2026. The project baseline is PostgreSQL 18.6. At project creation, select 18 if Supabase offers it; otherwise use the latest managed stable version it offers (currently expected to be 17.11), verify it with `SHOW server_version`, and record the supported-version exception. This favors a managed supported database over a local container while preserving portable PostgreSQL SQL and migrations.
 
 ### Kafka for meaningful asynchronous domain events
 
@@ -26,7 +32,7 @@ Kafka is the event broker when completed business workflows need asynchronous co
 
 ### Redis only for bounded ephemeral uses
 
-Redis may support measured caching, rate limiting, or short-lived session/idempotency/coordination state. It is not the source of truth. Each use must define TTL, invalidation, failure behavior, and why PostgreSQL or an in-process mechanism is insufficient. Redis is not included in the initial Compose stack.
+Redis may support measured caching, rate limiting, or short-lived session/idempotency/coordination state. It is not the source of truth. Each use must define TTL, invalidation, failure behavior, and why PostgreSQL or an in-process mechanism is insufficient. Redis is not part of the initial database setup.
 
 ### Python/FastAPI for predictive ML inference
 
@@ -45,11 +51,13 @@ The first RAG implementation uses PostgreSQL with pgvector rather than a dedicat
 - Early business invariants, inventory movements, and double-entry posting stay within one transaction boundary.
 - PostgreSQL and migration discipline are foundational; ledgers provide traceable history rather than mutable summary-only state.
 - Event, cache, LLM, RAG, and ML operations remain deferred until the workflow and authorization boundaries they depend on exist.
-- Local development currently provisions only PostgreSQL. Docker is absent in the inspected environment and the host is Windows 10 Home, so the Compose service has not been started.
+- Local development depends on the internet and a Supabase development project. No database project or credential is stored in this repository.
+- Supabase RLS is not automatically tied to the ERP's authenticated user when Spring connects directly with JDBC. The backend remains the authorization authority; any later RLS design must pass a validated tenant context transaction-locally and use a least-privilege runtime role. Supabase documents that its `service_role` bypasses RLS, so it must not be used by the browser or as the eventual ERP runtime role.
+- Supabase currently defaults hosted projects to PostgreSQL 17 while the project requirement names PostgreSQL 18.6. Recheck the offered server version when provisioning and document the compatibility exception if necessary.
+- Docker remains optional for development against the hosted database. Supabase's local CLI stack and Testcontainers-based isolated tests do require a Docker-compatible runtime, so those workflows can be reconsidered later without making Docker a Phase 0 prerequisite.
 - A single deployable lowers initial operating complexity but requires package boundaries and dependency review to prevent unwanted coupling.
 - TypeScript 7 is the current stable release, but Next.js IDE/compiler-plugin compatibility must be confirmed in Phase 1 because the TypeScript team notes that the new compiler does not yet provide a stable programmatic API for every plugin workflow.
 
 ## Version baseline recorded for planning
 
 The verified versions and official sources are tracked in [Development](../DEVELOPMENT.md#verified-stable-versions). These are dated planning targets, not yet installed dependency locks. Versions will be checked again when each phase introduces its dependencies.
-

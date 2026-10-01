@@ -4,7 +4,7 @@ The ERP will start as a modular monolith with a Next.js web client, a Spring Boo
 
 ## Current repository state
 
-This is an architecture plan, not a description of implemented services. Only the Phase 0 documentation, local PostgreSQL Compose definition, and repository conventions exist. No application code, schema, API, Kafka topics, Redis usage, AI provider calls, RAG index, or ML endpoint exists yet.
+This is an architecture plan, not a description of implemented services. Only the Phase 0 documentation, Supabase connection template, and repository conventions exist. No application code, schema, API, Kafka topics, Redis usage, AI provider calls, RAG index, or ML endpoint exists yet. A Supabase development project has not been provisioned in this workspace.
 
 ## Target topology
 
@@ -12,7 +12,7 @@ This is an architecture plan, not a description of implemented services. Only th
 flowchart TB
   User[ERP user] --> Web[Next.js and React web app]
   Web -->|HTTPS REST| ERP[Spring Boot modular monolith]
-  ERP --> PG[(PostgreSQL system of record)]
+  ERP --> PG[(Supabase managed PostgreSQL system of record)]
   ERP -. outbox events when implemented .-> Kafka[(Kafka)]
   ERP -. cache rate limits short-lived state .-> Redis[(Redis)]
   ERP --> AI[AI orchestration and permission boundary]
@@ -22,7 +22,7 @@ flowchart TB
   ML --> Models[Forecasting and anomaly models]
 ```
 
-The initial Compose environment contains PostgreSQL only. Kafka and Redis are deferred until the corresponding event and ephemeral-state use cases are implemented. The ML service is deferred until there is sufficient ERP history for meaningful predictions.
+Development uses a dedicated Supabase-hosted PostgreSQL project; a local container runtime is not required for that workflow. Kafka and Redis are deferred until the corresponding event and ephemeral-state use cases are implemented. The ML service is deferred until there is sufficient ERP history for meaningful predictions.
 
 ## ERP domain boundaries
 
@@ -80,10 +80,8 @@ apps/
   api/                       Spring Boot modular monolith (Phase 2 onward)
 services/
   ml/                        FastAPI inference service (Phase 16)
-infra/
-  compose.yaml               PostgreSQL development service
+infra/                       Reserved for deployment configuration if needed
 docs/
   DECISIONS/                 Architecture decision records
 scripts/                     Reproducible development/operations helpers
 ```
-

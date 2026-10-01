@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-This roadmap sequences the ERP into reviewable phases. The repository is currently at Phase 0: planning and local foundation files are in place, while the application toolchain and runnable PostgreSQL environment still need resolution. Each phase must meet its exit criteria before the next major phase begins.
+This roadmap sequences the ERP into reviewable phases. The repository is currently at Phase 0: planning and the Supabase connection template are in place, while the application toolchain and a development Supabase project still need resolution. Each phase must meet its exit criteria before the next major phase begins.
 
 ## Delivery rules
 
@@ -17,14 +17,14 @@ This roadmap sequences the ERP into reviewable phases. The repository is current
 - [x] Read all three specification documents and inspect the repository.
 - [x] Record the architecture and a dated stable-version matrix with official sources.
 - [x] Create the roadmap, architecture, and initial ADR.
-- [x] Add repository conventions, local environment example, PostgreSQL Compose definition, and planned app directories.
+- [x] Add repository conventions, Supabase connection example, and planned app directories.
 - [x] Initialize Git and create the foundation commit.
-- [ ] Resolve the supported Docker host/runtime; the inspected host is Windows 10 Home and Docker Desktop is absent.
 - [ ] Upgrade Node to the selected Node 24 LTS release and Java to Java 25 LTS before their phases.
-- [ ] Start the local PostgreSQL service and confirm its health after Docker is available.
+- [ ] Create a dedicated Supabase development project, add its connection values to local `.env`, and verify a TLS-protected database connection.
+- [ ] Confirm the hosted PostgreSQL version and record a compatibility decision if Supabase does not offer the PostgreSQL 18 baseline.
 - [ ] Confirm a Java build tool choice and wrapper version when the backend project is initialized.
 
-**Exit criteria:** a supported, reproducible local environment is runnable; version choices are pinned at first use; secrets remain local; the repository conventions and project docs are committed.
+**Exit criteria:** the development application can connect to its dedicated Supabase PostgreSQL project; version choices are pinned at first use; secrets remain local; the repository conventions and project docs are committed. Docker is optional for this cloud-database workflow.
 
 ## Phase 1 — Frontend Foundation
 
@@ -41,10 +41,10 @@ This roadmap sequences the ERP into reviewable phases. The repository is current
 - Initialize the Java/Spring Boot modular monolith with a verified Java LTS and Spring Boot 4.x stable patch.
 - Establish domain packages, configuration profiles, REST conventions, validation, safe error responses, correlation IDs, and structured logs.
 - Connect PostgreSQL and configure Flyway migrations; disable destructive automatic schema generation.
-- Add OpenAPI, service/repository conventions, and test infrastructure, including PostgreSQL Testcontainers.
+- Add OpenAPI, service/repository conventions, and PostgreSQL integration-test infrastructure using Testcontainers or a separate isolated test database; never run destructive tests against the shared development project.
 - Do not publish events or add Redis until a concrete domain workflow needs them.
 
-**Exit criteria:** application starts against PostgreSQL, a baseline migration applies cleanly, API error/validation contracts are documented, and representative tests run.
+**Exit criteria:** application starts against PostgreSQL, a baseline migration applies cleanly, API error/validation contracts are documented, and representative tests run against an isolated database.
 
 ## Phase 3 — Identity and Multi-Tenancy
 
@@ -163,7 +163,7 @@ This roadmap sequences the ERP into reviewable phases. The repository is current
 
 ## Phase 18 — Production Engineering
 
-- Complete Docker/Compose production packaging, CI/CD, OpenTelemetry, metrics, tracing, structured logging, and error reporting.
+- Complete deployment packaging for the selected runtime, CI/CD, OpenTelemetry, metrics, tracing, structured logging, and error reporting. Docker is optional unless the chosen deployment or isolated-test workflow requires containers.
 - Add Prometheus/Grafana dashboards, Kafka health/lag monitoring, performance tests, security hardening, and deployment/runbook documentation.
 - Review secrets, backups/recovery, access controls, migration rollout, and operational alerts.
 
@@ -172,4 +172,3 @@ This roadmap sequences the ERP into reviewable phases. The repository is current
 ## First end-to-end vertical slice
 
 After Phases 1 and 2 establish the UI and API foundations, the first full business slice is **tenant-aware identity**: user signs in, selects an organization, receives a server-derived tenant context, sees role-aware navigation, and receives a safe access-denied response for unauthorized routes. It must include migrations, backend authorization, audit events, UI states, and cross-tenant read/write tests before moving into CRM.
-
