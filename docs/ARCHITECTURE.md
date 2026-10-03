@@ -4,7 +4,7 @@ The ERP will start as a modular monolith with a Next.js web client, a Spring Boo
 
 ## Current repository state
 
-This is an architecture plan, not a description of implemented services. Only the Phase 0 documentation, Supabase connection template, and repository conventions exist. No application code, schema, API, Kafka topics, Redis usage, AI provider calls, RAG index, or ML endpoint exists yet. A Supabase development project has not been provisioned in this workspace.
+This section separates the implemented foundation from the target architecture. The repository has a Next.js/React shell with responsive navigation and honest setup/empty/error states. Its module pages do not read or write ERP data. No Spring service, API, authentication, database schema/migration, Kafka topic, Redis usage, AI provider call, RAG index, or ML endpoint exists yet. The local `.env` has Supabase URL/API values, but PostgreSQL host credentials are still placeholders and no database connection has been verified.
 
 ## Target topology
 
@@ -76,7 +76,7 @@ The target uses structured logs, correlation IDs across HTTP/database/events, me
 
 ```text
 apps/
-  web/                       Next.js UI (Phase 1)
+  web/                       Next.js shell (Phase 1, in progress)
   api/                       Spring Boot modular monolith (Phase 2 onward)
 services/
   ml/                        FastAPI inference service (Phase 16)

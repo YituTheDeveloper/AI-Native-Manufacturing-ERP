@@ -1,6 +1,6 @@
 # Implementation Roadmap
 
-This roadmap sequences the ERP into reviewable phases. The repository is currently at Phase 0: planning and the Supabase connection template are in place, while the application toolchain and a development Supabase project still need resolution. Each phase must meet its exit criteria before the next major phase begins.
+This roadmap sequences the ERP into reviewable phases. Phase 0 remains in progress because the selected host runtimes and verified PostgreSQL connection are unresolved. Phase 1 has an initial web shell but has not met its exit criteria. Each phase must meet its exit criteria before the next major phase begins.
 
 ## Delivery rules
 
@@ -20,7 +20,7 @@ This roadmap sequences the ERP into reviewable phases. The repository is current
 - [x] Add repository conventions, Supabase connection example, and planned app directories.
 - [x] Initialize Git and create the foundation commit.
 - [ ] Upgrade Node to the selected Node 24 LTS release and Java to Java 25 LTS before their phases.
-- [ ] Create a dedicated Supabase development project, add its connection values to local `.env`, and verify a TLS-protected database connection.
+- [ ] Add the PostgreSQL host, database user, and password to ignored local `.env`, then verify a TLS-protected database connection. The current URL/API values do not provide JDBC credentials; the supplied service key returned HTTP 401 on a read-only check.
 - [ ] Confirm the hosted PostgreSQL version and record a compatibility decision if Supabase does not offer the PostgreSQL 18 baseline.
 - [ ] Confirm a Java build tool choice and wrapper version when the backend project is initialized.
 
@@ -28,13 +28,17 @@ This roadmap sequences the ERP into reviewable phases. The repository is current
 
 ## Phase 1 — Frontend Foundation
 
-- Initialize Next.js with App Router, React, strict TypeScript, and the selected package manager.
-- Add the persistent ERP shell, responsive navigation, route groups, design tokens, accessible primitives, and error/loading/empty states.
+**Status: In progress.**
+
+- [x] Initialize Next.js with App Router, React, strict TypeScript, and the selected package manager.
+- [x] Add a responsive ERP shell, module routes, design tokens, setup/empty states, and route loading/error/not-found states.
 - Add a typed API client, session-aware request boundary, validation conventions, and frontend permission-aware navigation.
 - Add form and server-state dependencies only as needed; establish Playwright for critical browser flows.
 - Keep screens shell-only until real APIs exist; do not add fabricated business data.
 
-**Exit criteria:** frontend development/build commands work, strict type checking is clean, shell states are accessible, and the chosen framework/compiler versions are compatible.
+The current web shell passes `pnpm typecheck` and `pnpm build`. The host Node version does not yet meet the repository's Node 24.21.0 engine requirement, and browser accessibility/critical flows have not been exercised by an automated suite.
+
+**Exit criteria:** frontend development/build commands work under the selected runtime, strict type checking is clean, accessible shell states are browser-verified, and the session-aware API boundary is established.
 
 ## Phase 2 — Backend Foundation
 

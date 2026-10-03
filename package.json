@@ -1,0 +1,13 @@
+{
+  "name": "ai-native-manufacturing-erp",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24.21.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @erp/web dev",
+    "build": "pnpm --filter @erp/web build",
+    "typecheck": "pnpm --filter @erp/web typecheck"
+  }
+}
