@@ -1,0 +1,228 @@
+AI-Native Manufacturing ERP
+Backend, Database, AI Services & Detailed Instructions for the AI Coding Agent
+
+1. Backend Mission
+Build a secure, modular, transactional ERP backend with clear domain boundaries. The backend is the authoritative system of record. Business invariants, authorization, financial rules, inventory rules and workflow rules must be enforced here.
+2. Backend Stack
+Java LTS selected from the current supported LTS line at implementation time.
+Spring Boot 4.x latest stable patch compatible with the selected Java LTS.
+Spring Web for REST APIs.
+Spring Security for authentication/authorization integration.
+Spring Data JPA + Hibernate for relational persistence.
+Bean Validation for request/domain validation where appropriate.
+Flyway or Liquibase for schema migrations; choose one and standardize on it.
+Spring for Kafka for event publishing/consumption.
+Redis client/integration for caching and short-lived state.
+Testcontainers for integration tests.
+OpenAPI/Swagger-compatible API documentation.
+Micrometer/OpenTelemetry-compatible observability.
+3. Backend Architecture
+com.example.erp
+  common/
+    error/
+    security/
+    audit/
+    pagination/
+    events/
+    observability/
+  identity/
+  tenant/
+  crm/
+  sales/
+  procurement/
+  inventory/
+  manufacturing/
+  quality/
+  finance/
+  assets/
+  workforce/
+  workflow/
+  analytics/
+  ai/
+
+Use a modular-monolith architecture with domain-oriented packages. Each module owns its domain logic and persistence boundaries. Avoid a giant shared service layer that mixes unrelated business concepts.
+4. API Standards
+Use resource-oriented REST APIs with consistent naming, status codes, validation errors and pagination.
+Version public APIs when compatibility requires it.
+Use stable identifiers; UUIDs are preferred for externally exposed entity IDs unless a domain-specific identifier is required.
+Return machine-readable error structures with correlation IDs.
+Document APIs through OpenAPI.
+Support idempotency for operations where clients may safely retry, especially payments, order creation, inventory movements and event handlers.
+Never expose internal stack traces or SQL errors to clients.
+5. Security Architecture
+Tenant context must be established and validated for every authenticated request.
+Use RBAC for baseline access and add resource/tenant constraints where necessary.
+Enforce authorization in application services and critical data-access boundaries.
+Use least privilege for service credentials.
+Audit authentication, authorization failures, important reads where required, and all significant state-changing operations.
+Protect sensitive configuration with environment/secret management.
+Apply rate limits to authentication, AI endpoints and expensive operations.
+Use secure password hashing if the application owns credentials; otherwise prefer an OIDC identity provider.
+6. Core Database Principles
+PostgreSQL is the system of record.
+Use PostgreSQL 18.x supported stable branch at project initialization unless official compatibility constraints require another supported branch.
+Use normalized relational models for transactional data.
+Use JSONB only for genuinely semi-structured/extensible attributes, not as a replacement for relational modeling.
+Use foreign keys and database constraints to protect invariants.
+Use unique constraints for business keys where required.
+Use indexes based on actual query patterns.
+Use timestamps consistently and define UTC storage semantics.
+Use decimal/numeric types for money and quantities requiring exact arithmetic.
+Use optimistic locking/versioning for concurrent edits where appropriate.
+Use append-only ledgers for inventory and accounting history.
+7. Tenant Isolation
+Every tenant-owned table should carry a tenant identifier or be reachable through a tenant-scoped parent. The design must make cross-tenant access difficult by construction.
+Establish tenant context at authentication/request boundary.
+Include tenant predicates in repositories/services.
+Add integration tests proving cross-tenant reads and writes fail.
+Consider PostgreSQL Row-Level Security for high-value tenant-owned data if the final deployment architecture supports it.
+Never accept tenant_id blindly from request bodies.
+8. Major Entities
+Domain	Representative entities
+Identity	Organization, User, Role, Permission, UserRole, Session
+CRM	Customer, Contact, Lead, Opportunity, Activity
+Product	Product, ProductVariant, UnitOfMeasure, ProductCategory
+Supplier	Supplier, SupplierContact, SupplierPrice
+Sales	Quote, QuoteLine, SalesOrder, SalesOrderLine, Delivery, DeliveryLine, CustomerReturn
+Procurement	PurchaseRequisition, RFQ, RFQLine, PurchaseOrder, PurchaseOrderLine, GoodsReceipt
+Inventory	Warehouse, Bin, StockItem, StockLedgerEntry, StockReservation, StockTransfer, Batch, SerialNumber
+Manufacturing	BOM, BOMLine, Routing, RoutingStep, WorkCenter, ProductionOrder, MaterialConsumption, ProductionOutput, Scrap
+Quality	InspectionPlan, Inspection, InspectionResult, Defect, CorrectiveAction
+Finance	Account, Journal, JournalLine, FiscalPeriod, Invoice, InvoiceLine, Payment, PaymentAllocation
+Assets	Asset, AssetCategory, DepreciationEntry, MaintenancePlan, MaintenanceWorkOrder
+Workflow	WorkflowDefinition, WorkflowStep, ApprovalRule, ApprovalInstance, ApprovalAction
+AI	Conversation, Message, ToolCall, AIActionProposal, AIApproval, Document, DocumentChunk, Forecast, Anomaly
+
+9. Transactional Rules
+A stock movement and its ledger record must commit atomically.
+A completed goods receipt must update the appropriate stock state atomically.
+A completed invoice/payment workflow must create corresponding accounting records atomically where the business event requires it.
+Double-entry journal posting must be balanced before commit.
+Event publication must not create distributed transaction inconsistencies; use the transactional outbox pattern for important domain events.
+Consumers must be idempotent.
+10. Event-Driven Architecture
+Use Kafka for meaningful asynchronous domain events rather than for every method call.
+SalesOrderConfirmed
+PurchaseOrderApproved
+GoodsReceiptCompleted
+InventoryAdjusted
+ProductionOrderReleased
+ProductionCompleted
+QualityInspectionFailed
+InvoicePosted
+PaymentReceived
+AIActionApproved
+Use an outbox table and reliable publisher for important transactional events. Include event ID, event type, aggregate ID, tenant ID, timestamp, schema version and payload metadata.
+11. Redis Requirements
+Cache read-heavy reference data where measured useful.
+Use for short-lived locks or idempotency keys only with carefully defined semantics.
+Use for rate limiting/session-related ephemeral state where appropriate.
+Never treat Redis as the authoritative ERP database.
+Apply TTLs intentionally and document cache invalidation behavior.
+12. AI Backend Architecture
+Spring Boot
+   |
+   +-- AI orchestration / authorization boundary
+   |
+   +-- ERP tool registry
+   |
+   +-- RAG retrieval
+   |
+   +-- LLM provider adapter
+   |
+   +-- AI audit/event layer
+   |
+   +-- Python FastAPI ML service
+            |
+            +-- forecasting
+            +-- anomaly detection
+            +-- model inference
+
+Implement a provider abstraction so OpenAI and Gemini can be configured without rewriting ERP business logic.
+Treat LLM output as untrusted input.
+Validate structured tool-call arguments against schemas before execution.
+Apply user/role/tenant authorization to every tool.
+Separate read tools from write tools.
+Require confirmation/approval for configured high-impact writes.
+Persist AI action proposals and outcomes for auditability.
+Use RAG with PostgreSQL/pgvector initially; migrate to a dedicated vector system only if scale or capability requires it.
+Keep ML inference in Python/FastAPI so model development remains idiomatic Python.
+13. AI Tool Design
+Tool category	Examples	Default policy
+Read	get_inventory, get_sales, get_supplier, get_invoice, get_financial_summary	Allowed only within user authorization and tenant scope
+Analysis	forecast_demand, detect_anomalies, calculate_reorder_point	Read-only; results marked as model-derived
+Proposal	propose_purchase_order, propose_inventory_transfer	Creates proposal, not final mutation
+Write	create_purchase_order, transfer_inventory, issue_refund	Explicit authorization; high-impact actions require approval
+Administrative	change_role, close_period, alter_financial configuration	Never autonomous by default; require privileged human action
+
+14. ML Service Requirements
+Python + FastAPI current stable release.
+Use scikit-learn, XGBoost, LightGBM or another appropriate stable library based on the problem.
+Build demand forecasting using historical sales and operational features.
+Build anomaly detection for procurement, inventory and expense patterns.
+Version model artifacts and record training metadata.
+Expose typed inference endpoints.
+Validate input schema and model feature compatibility.
+Return model version, prediction, confidence/uncertainty indicators where meaningful, and timestamp.
+Do not present predictions as guaranteed outcomes.
+15. RAG Requirements
+Document ingestion must be tenant-scoped.
+Extract text, normalize it, chunk it, embed it, and store chunk metadata plus vector.
+Store source document ID, page/section metadata and content hash.
+Retrieve top relevant chunks using similarity search and optional metadata filters.
+Return citations in AI responses.
+Prevent cross-tenant retrieval.
+Allow document replacement/re-indexing without creating uncontrolled duplicate chunks.
+16. Database Migration Strategy
+1.Every schema change gets a migration.
+2.Never rely on Hibernate auto-DDL in production.
+3.Use forward-compatible changes for deployments that may overlap.
+4.Backfill data explicitly and safely.
+5.Add indexes concurrently or through safe operational procedures where production scale requires it.
+6.Test migrations against a clean database and an upgraded database.
+17. Testing Requirements
+Unit tests for domain calculations and business rules.
+Repository/integration tests against real PostgreSQL via Testcontainers.
+Security tests for authorization and tenant isolation.
+API tests for validation, pagination, error contracts and idempotency.
+Event tests for publication and consumer idempotency.
+Financial tests for balanced journal entries.
+Inventory tests for concurrency-sensitive stock operations.
+AI tool authorization tests.
+ML API contract and model inference tests.
+18. Observability
+Use correlation/request IDs across HTTP, database operations and Kafka events.
+Emit structured JSON logs.
+Expose application metrics.
+Trace important cross-component workflows with OpenTelemetry.
+Track Kafka consumer lag and failed messages.
+Track AI latency, token/cost metadata where provider APIs permit, tool failures, approval outcomes and model versions without logging sensitive prompts or data unnecessarily.
+AI Agent Operating Instructions
+7.Act as a senior staff-level engineer. Do not blindly generate code; first inspect the repository, current dependency versions, architecture, existing conventions, and tests.
+8.Before adding or upgrading any dependency, verify the latest stable production release from the official project documentation or package registry. Never select a beta, release candidate, nightly, deprecated, or end-of-life version unless the specification explicitly requires it.
+9.Prefer stable, well-supported modules and official integrations. Do not introduce a library merely because it is popular if the platform already provides the required capability.
+10.Preserve existing working behavior. Make incremental, reviewable changes and avoid unrelated refactors.
+11.Before implementing a major feature, write a short implementation plan, identify affected modules, data changes, API changes, security implications, and tests.
+12.Use strong typing, validation, explicit error handling, structured logging, and clear domain boundaries.
+13.Never place secrets, API keys, credentials, tokens, or private customer data in source code, commits, logs, screenshots, fixtures, or generated documentation.
+14.Do not invent APIs, framework features, configuration keys, database columns, or package names. Verify them against current official documentation.
+15.Do not silently change the architecture. If a requested implementation conflicts with the architecture, explain the conflict and choose the least disruptive compatible approach.
+16.After each meaningful implementation unit, run formatting, static analysis, unit tests, integration tests relevant to the change, and build checks. Fix failures before continuing.
+17.For database changes, use migrations. Never modify production schema manually or rely on auto-generated destructive schema updates.
+18.For security-sensitive operations, default to deny. Enforce authorization on the backend; frontend checks are only for UX.
+19.For AI-generated actions that can mutate ERP state, require explicit permission checks and configurable human approval for high-impact operations.
+20.Document important architectural decisions and trade-offs in ADRs or equivalent project documentation.
+21.Keep the project portfolio-quality: readable code, coherent naming, tests, documentation, observability, reproducible local setup, and production-minded defaults.
+19. Backend Agent Implementation Sequence
+22.Inspect repository and verify all current stable framework versions from official sources.
+23.Initialize the Spring Boot project with only required modules.
+24.Create tenant/identity/security foundation.
+25.Create migration system and baseline schema.
+26.Implement one vertical domain slice end-to-end.
+27.Establish API error contract, validation, audit logging and testing conventions.
+28.Add remaining domains incrementally.
+29.Introduce Kafka and transactional outbox only after transactional domain flows are stable.
+30.Introduce Redis only where a concrete caching/rate-limiting/ephemeral-state use case exists.
+31.Introduce AI tool infrastructure after core authorization is mature.
+32.Add RAG and ML services after the ERP data model provides meaningful historical data.
+33.Harden observability, performance, security and deployment before declaring production readiness.

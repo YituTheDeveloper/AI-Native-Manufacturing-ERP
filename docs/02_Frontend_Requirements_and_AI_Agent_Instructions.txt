@@ -1,0 +1,142 @@
+AI-Native Manufacturing ERP
+Frontend Requirements & Detailed Instructions for the AI Coding Agent
+
+1. Frontend Mission
+Build a professional ERP interface that feels like a serious enterprise product: information-dense but readable, fast, keyboard-friendly, responsive, accessible, consistent, and designed around workflows rather than isolated CRUD screens.
+2. Frontend Stack
+Next.js 16.x Active LTS or the latest stable supported release at implementation time.
+React 19.x stable.
+TypeScript with strict mode.
+Tailwind CSS and shadcn/ui or another mature accessible primitive system.
+TanStack Query for server-state management where appropriate.
+Zod for runtime validation at client boundaries.
+React Hook Form for complex forms.
+A stable charting library for dashboards.
+Playwright for end-to-end browser testing.
+Use Next.js App Router and current stable platform capabilities.
+3. Information Architecture
+app/
+  (auth)/
+  (dashboard)/
+    dashboard/
+    crm/
+    sales/
+    procurement/
+    inventory/
+    manufacturing/
+    quality/
+    finance/
+    assets/
+    workforce/
+    analytics/
+    ai/
+  settings/
+components/
+  ui/
+  data-table/
+  forms/
+  charts/
+  workflows/
+lib/
+  api/
+  auth/
+  validation/
+  formatting/
+hooks/
+types/
+features/
+  sales/
+  inventory/
+  procurement/
+  manufacturing/
+  finance/
+  ai/
+
+4. UX Requirements
+Persistent application shell with sidebar navigation, organization/tenant context, global search, notifications and user menu.
+Role-aware navigation: users should only see modules they can access.
+Data tables must support server-side pagination, sorting, filtering, column visibility and useful empty/loading/error states.
+Forms must show field-level validation, server validation errors, unsaved-change protection where appropriate, and clear submit states.
+Destructive actions require confirmation and explain the consequence.
+Use drawers/modals only for focused tasks; use full pages for complex workflows.
+Every business workflow must communicate status clearly using consistent badges, timelines, steps or progress indicators.
+Support responsive layouts; desktop is primary for ERP work but core operations must remain usable on tablet widths.
+Use optimistic UI only where rollback is safe and predictable.
+Avoid excessive animations; motion should communicate state rather than decorate the interface.
+5. Core Screens
+Area	Screens
+Identity	Login, MFA if enabled, organization selection, access denied
+Dashboard	Role-specific KPI dashboard, alerts, tasks, recent activity
+CRM	Customers, contacts, leads, opportunities, activities
+Sales	Quotes, quote detail, sales orders, order detail, delivery status, invoices
+Procurement	Requisitions, RFQs, supplier comparison, purchase orders, receipts
+Inventory	Products, stock overview, warehouse/bin view, movements, reservations, transfers, batches/serials
+Manufacturing	BOMs, routings, work centers, production orders, material availability, production execution
+Quality	Inspection plans, inspections, defects, corrective actions
+Finance	Chart of accounts, journals, invoices, payments, AR/AP, financial reports
+Assets	Asset register, depreciation, maintenance
+Workflow	Approval inbox, workflow history, delegated approvals
+Analytics	Sales, procurement, inventory, manufacturing and finance dashboards
+AI	Copilot chat, source citations, tool activity, recommendations, approval queue
+
+6. ERP Data Table Standards
+Never fetch unbounded collections into the browser.
+Use URL/search-param state for shareable filters and pagination when appropriate.
+Provide saved views only after the core table UX is stable.
+Show record identifiers, human-readable names, status, dates and important business metrics consistently.
+Support bulk actions only when authorization and transaction semantics are well-defined.
+For financial and inventory numbers, use deterministic formatting and avoid floating-point display errors.
+7. AI Copilot UI
+Conversation panel with streaming responses where supported.
+Display which ERP tools were invoked in a compact, inspectable activity area.
+Display source citations for RAG responses.
+Clearly distinguish facts retrieved from ERP records, model-generated summaries, forecasts and recommendations.
+For proposed write actions, show a structured action preview before execution.
+Require explicit user confirmation for configured high-impact actions.
+Display permission or authorization failures without exposing internal security details.
+Preserve conversation context only according to explicit product retention rules.
+8. Frontend Security
+Never trust frontend role checks for authorization.
+Do not expose server-only secrets to the browser.
+Sanitize/render AI-generated content safely; do not allow arbitrary HTML execution.
+Use secure authentication/session mechanisms supported by the chosen backend.
+Avoid storing long-lived sensitive tokens in localStorage.
+Do not include sensitive ERP data in client-side analytics or logs.
+9. Frontend Performance
+Use server rendering/caching where it improves initial navigation without compromising data freshness.
+Use client components only when interactivity requires them.
+Use code splitting and lazy loading for heavy dashboards/charts.
+Virtualize very large tables when necessary.
+Avoid waterfall requests; use parallel data fetching where dependencies do not exist.
+Measure rather than guess: use browser performance tools and production telemetry.
+10. Frontend Testing
+Unit test reusable business utilities and complex UI logic.
+Component-test high-risk forms and stateful widgets.
+Use Playwright for critical end-to-end workflows.
+At minimum cover login, tenant selection, sales order creation, purchase approval, inventory transfer, production order lifecycle, invoice flow, and AI approval flow.
+Test loading, empty, error, permission-denied and validation states—not only successful paths.
+AI Agent Operating Instructions
+1.Act as a senior staff-level engineer. Do not blindly generate code; first inspect the repository, current dependency versions, architecture, existing conventions, and tests.
+2.Before adding or upgrading any dependency, verify the latest stable production release from the official project documentation or package registry. Never select a beta, release candidate, nightly, deprecated, or end-of-life version unless the specification explicitly requires it.
+3.Prefer stable, well-supported modules and official integrations. Do not introduce a library merely because it is popular if the platform already provides the required capability.
+4.Preserve existing working behavior. Make incremental, reviewable changes and avoid unrelated refactors.
+5.Before implementing a major feature, write a short implementation plan, identify affected modules, data changes, API changes, security implications, and tests.
+6.Use strong typing, validation, explicit error handling, structured logging, and clear domain boundaries.
+7.Never place secrets, API keys, credentials, tokens, or private customer data in source code, commits, logs, screenshots, fixtures, or generated documentation.
+8.Do not invent APIs, framework features, configuration keys, database columns, or package names. Verify them against current official documentation.
+9.Do not silently change the architecture. If a requested implementation conflicts with the architecture, explain the conflict and choose the least disruptive compatible approach.
+10.After each meaningful implementation unit, run formatting, static analysis, unit tests, integration tests relevant to the change, and build checks. Fix failures before continuing.
+11.For database changes, use migrations. Never modify production schema manually or rely on auto-generated destructive schema updates.
+12.For security-sensitive operations, default to deny. Enforce authorization on the backend; frontend checks are only for UX.
+13.For AI-generated actions that can mutate ERP state, require explicit permission checks and configurable human approval for high-impact operations.
+14.Document important architectural decisions and trade-offs in ADRs or equivalent project documentation.
+15.Keep the project portfolio-quality: readable code, coherent naming, tests, documentation, observability, reproducible local setup, and production-minded defaults.
+11. Frontend Agent-Specific Workflow
+16.Inspect the existing Next.js version and current package.json before changing dependencies.
+17.Verify current Next.js/React compatibility and official migration notes before upgrades.
+18.Establish the application shell and design tokens before building individual modules.
+19.Build one complete vertical slice first: list → detail → create/edit → validation → API integration → authorization → tests.
+20.Extract reusable primitives only after at least two real screens demonstrate the shared pattern.
+21.Do not create a giant generic component system that obscures business behavior.
+22.Use real API contracts or generated types; do not duplicate backend schemas manually when a reliable generation strategy is available.
+23.Keep frontend domain modules aligned with backend domain modules.

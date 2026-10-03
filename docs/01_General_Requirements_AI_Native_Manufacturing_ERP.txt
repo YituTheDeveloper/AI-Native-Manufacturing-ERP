@@ -1,0 +1,151 @@
+AI-Native Manufacturing ERP
+General Project Requirements, Product Scope, Architecture Principles & AI-Agent Master Instructions
+
+1. Project Vision
+Build a portfolio-grade, multi-tenant, AI-native manufacturing ERP for small and medium-sized manufacturers and distributors. The platform should connect sales, procurement, inventory, manufacturing, quality, finance, assets, workforce operations, analytics, and AI-assisted decision making in one coherent system.
+2. Portfolio Objective
+The project must demonstrate full-stack engineering, enterprise backend architecture, relational database design, security, event-driven systems, AI agents, retrieval-augmented generation, predictive machine learning, testing, observability, and deployment.
+Demonstrate advanced Next.js/React/TypeScript frontend engineering.
+Demonstrate Spring Boot enterprise backend engineering while leveraging the developer's existing Node.js experience.
+Demonstrate PostgreSQL expertise beyond basic CRUD.
+Demonstrate AI integration as a business capability rather than as a standalone chatbot.
+Demonstrate production-minded architecture without prematurely decomposing everything into microservices.
+3. Core Architecture Decision
+Web UI
+  Next.js + React + TypeScript
+        |
+        v
+Spring Boot ERP Backend
+        |
+  +-----+------------------+
+  |                        |
+PostgreSQL               Redis
+  |
+pgvector
+        |
+      Kafka
+        |
+  AI / ML Services
+  Python + FastAPI
+        |
+  LLM Providers
+ OpenAI / Gemini
+
+Start as a modular monolith for the ERP core. Introduce asynchronous/event-driven processing through Kafka and isolate ML inference in a Python/FastAPI service. Extract additional services only when there is a concrete architectural reason.
+4. Business Modules
+Module	Required capabilities
+Identity & Tenancy	Organizations, users, roles, permissions, tenant isolation, sessions, auditability
+CRM	Customers, contacts, leads, opportunities, activities
+Sales	Quotes, sales orders, pricing, discounts, deliveries, returns, invoicing integration
+Procurement	Suppliers, RFQs, purchase requisitions, purchase orders, receiving, supplier performance
+Inventory	Warehouses, bins, stock ledger, reservations, transfers, batches, serials, valuation
+Manufacturing	Products, BOMs, routings, work centers, production orders, material consumption, outputs
+MRP	Demand, supply, reorder points, planned orders, capacity considerations
+Quality	Inspection plans, inspections, defects, non-conformance, corrective actions
+Finance	Chart of accounts, journals, AR/AP, invoices, payments, periods, trial balance, P&L, balance sheet
+Assets	Assets, acquisition, depreciation, maintenance schedules, service history
+Workforce	Employees, departments, attendance, leave, approvals; payroll may be a later phase
+Workflow	Reusable approval definitions, rules, instances, escalations and audit trail
+Analytics	Operational dashboards, KPIs, financial reports, inventory and manufacturing analytics
+AI	Copilot, RAG, agents, forecasting, anomaly detection, explanations and recommendations
+
+5. Key End-to-End Workflows
+1.Lead → opportunity → quotation → sales order → inventory reservation → delivery → invoice → payment → accounting entries.
+2.Purchase requisition → approval → RFQ → supplier selection → purchase order → receipt → inventory update → supplier invoice → AP entry.
+3.Demand → MRP planning → planned purchase/production order → material allocation → production → quality inspection → finished goods → inventory.
+4.Customer return → inspection → accepted/rejected disposition → inventory adjustment → credit note → accounting.
+5.AI recommendation → permission check → proposed action → human approval where required → transactional execution → audit event.
+6. Accounting Requirements
+Implement simplified but real double-entry accounting. Business actions that have financial impact must produce traceable journal entries.
+Immutable or append-only accounting journal records.
+Balanced debit/credit entries.
+Chart of accounts and account types.
+Accounting periods and period closing controls.
+Accounts receivable and payable.
+Trial balance, profit and loss, and balance sheet reports.
+Clear source-document references from financial entries back to invoices, payments, receipts, or other business events.
+7. Inventory Requirements
+Maintain an inventory transaction ledger rather than relying only on a mutable quantity field.
+Support receipts, issues, transfers, reservations, adjustments, production consumption, production output, returns, batch/lot and serial tracking.
+Make stock-changing operations transactional and auditable.
+Support reorder points and safety stock.
+Implement a defined inventory valuation strategy; the initial release may use weighted average, with FIFO designed as an extension.
+8. Manufacturing Requirements
+BOMs with component quantities and units of measure.
+Versioned BOMs and effective dates.
+Routings and work centers.
+Production order lifecycle: planned → released → in progress → quality → completed/cancelled.
+Material reservation and consumption.
+Finished-goods receipt.
+Scrap and yield tracking.
+Basic capacity and material availability checks.
+9. AI Product Requirements
+ERP Copilot for natural-language analytics and operational questions.
+Tool-calling AI agent that can query ERP data through permission-aware tools.
+Human-in-the-loop approval for high-impact write actions.
+RAG over company policies, SOPs, manuals and product documentation using PostgreSQL/pgvector initially.
+Demand forecasting using historical ERP data.
+Anomaly detection for procurement, expenses, inventory shrinkage and unusual operational behavior.
+AI-generated explanations must distinguish source facts, calculations, predictions and uncertainty.
+All AI actions and important tool calls must be auditable.
+10. Non-Functional Requirements
+Security: tenant isolation, RBAC, backend authorization, secure secrets, rate limiting and audit logs.
+Reliability: transactional integrity, idempotent event consumers, retries and dead-letter handling.
+Performance: pagination, indexing, caching where justified, asynchronous processing for long-running jobs.
+Observability: structured logs, metrics, traces and correlation IDs.
+Accessibility: keyboard navigation, semantic HTML, visible focus states and appropriate ARIA usage.
+Testing: unit, integration, API, end-to-end and selected contract/event tests.
+Documentation: setup guide, architecture diagram, API documentation, ADRs and AI behavior documentation.
+11. Technology Baseline & Version Policy
+Use current stable releases at implementation time. Never hard-code a stale version simply because this document names a version. The agent must verify official release status immediately before project initialization and before major upgrades.
+Area	Baseline
+Frontend	Next.js 16.x Active LTS + React 19.x + TypeScript
+UI	Tailwind CSS + shadcn/ui or equivalent stable component primitives
+Backend	Java LTS + Spring Boot 4.x
+Persistence	PostgreSQL 18.x supported stable branch
+ORM	Spring Data JPA + Hibernate compatible with the selected Spring Boot release
+Cache	Redis 8.x stable
+Events	Apache Kafka 4.x stable
+ML API	Python + FastAPI stable
+Vector search	PostgreSQL + pgvector initially
+Testing	JUnit, Spring test support, Testcontainers, Playwright
+Observability	OpenTelemetry + Prometheus + Grafana
+Containers	Docker + Compose for local development
+CI/CD	GitHub Actions
+Cloud	AWS or another documented cloud provider; avoid unnecessary vendor lock-in
+
+12. Definition of Done
+Feature works through the UI and API where applicable.
+Authorization rules are enforced server-side.
+Database migrations are included.
+Validation and error handling are implemented.
+Tests cover business-critical paths.
+Logs and audit events exist for important state changes.
+API documentation is updated.
+No secrets are committed.
+Lint/type/build/test checks pass.
+The implementation is documented enough for another engineer to run and understand.
+AI Agent Operating Instructions
+6.Act as a senior staff-level engineer. Do not blindly generate code; first inspect the repository, current dependency versions, architecture, existing conventions, and tests.
+7.Before adding or upgrading any dependency, verify the latest stable production release from the official project documentation or package registry. Never select a beta, release candidate, nightly, deprecated, or end-of-life version unless the specification explicitly requires it.
+8.Prefer stable, well-supported modules and official integrations. Do not introduce a library merely because it is popular if the platform already provides the required capability.
+9.Preserve existing working behavior. Make incremental, reviewable changes and avoid unrelated refactors.
+10.Before implementing a major feature, write a short implementation plan, identify affected modules, data changes, API changes, security implications, and tests.
+11.Use strong typing, validation, explicit error handling, structured logging, and clear domain boundaries.
+12.Never place secrets, API keys, credentials, tokens, or private customer data in source code, commits, logs, screenshots, fixtures, or generated documentation.
+13.Do not invent APIs, framework features, configuration keys, database columns, or package names. Verify them against current official documentation.
+14.Do not silently change the architecture. If a requested implementation conflicts with the architecture, explain the conflict and choose the least disruptive compatible approach.
+15.After each meaningful implementation unit, run formatting, static analysis, unit tests, integration tests relevant to the change, and build checks. Fix failures before continuing.
+16.For database changes, use migrations. Never modify production schema manually or rely on auto-generated destructive schema updates.
+17.For security-sensitive operations, default to deny. Enforce authorization on the backend; frontend checks are only for UX.
+18.For AI-generated actions that can mutate ERP state, require explicit permission checks and configurable human approval for high-impact operations.
+19.Document important architectural decisions and trade-offs in ADRs or equivalent project documentation.
+20.Keep the project portfolio-quality: readable code, coherent naming, tests, documentation, observability, reproducible local setup, and production-minded defaults.
+13. Current Official Technology References
+The agent should use official documentation as the source of truth for versions and APIs. Current verification used for this specification includes:
+Next.js official release/security information: Next.js 16.3.8 is Active LTS as of September 30, 2026.
+React official versions: React 19.3 is the current documented major/minor release line.
+Spring official release information: Spring Boot 4.1.0 is available; use the latest compatible 4.x patch release at implementation time.
+PostgreSQL official release information: PostgreSQL 18 is the current supported major; PostgreSQL 19 was still in beta during this specification.
+Apache Kafka official downloads: Kafka 4.3.1 is a supported release.
+FastAPI official release notes: FastAPI 0.142.2 was the latest release observed on September 30, 2026.
